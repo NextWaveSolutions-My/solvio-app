@@ -21,20 +21,7 @@ export function PwaBootstrap() {
   const hasRefreshedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    if (typeof navigator === "undefined") {
-      return;
-    }
-
-    if (!("serviceWorker" in navigator)) {
-      return;
-    }
-
     let active = true;
-
     const isOnlineReachable = async () => {
       try {
         await fetch(`/?__online_check=${Date.now()}`, {
@@ -53,8 +40,8 @@ export function PwaBootstrap() {
       }
 
       let offline = !navigator.onLine;
-
       if (offline) {
+        // navigator.onLine can briefly flap; verify with a real same-origin probe.
         const reachable = await isOnlineReachable();
         offline = !reachable;
       }
@@ -78,7 +65,6 @@ export function PwaBootstrap() {
         const fallbackPath = "/";
         const returnTo =
           window.sessionStorage.getItem(OFFLINE_RETURN_TO_KEY) || fallbackPath;
-
         window.sessionStorage.removeItem(OFFLINE_RETURN_TO_KEY);
         window.location.replace(returnTo);
       }
@@ -93,7 +79,6 @@ export function PwaBootstrap() {
 
       const watchInstallingWorker = () => {
         const installingWorker = registration.installing;
-
         if (!installingWorker) {
           return;
         }
@@ -132,11 +117,9 @@ export function PwaBootstrap() {
         }
 
         const registration = await registerPwaServiceWorker();
-
         if (active && registration) {
           monitorRegistration(registration);
           await registration.update();
-
           if (registration.waiting && navigator.serviceWorker.controller) {
             setHasUpdate(true);
           }
@@ -147,7 +130,10 @@ export function PwaBootstrap() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && registrationRef.current) {
+      if (
+        document.visibilityState === "visible" &&
+        registrationRef.current
+      ) {
         void registrationRef.current
           .update()
           .then(() => {
@@ -181,24 +167,22 @@ export function PwaBootstrap() {
 
     void register();
     void syncOfflineState();
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
-
-    navigator.serviceWorker.addEventListener(
-      "controllerchange",
-      handleControllerChange
-    );
+    if ("serviceWorker" in navigator && navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        handleControllerChange
+      );
+    }
 
     return () => {
       active = false;
-
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
-
-      if ("serviceWorker" in navigator) {
+      if ("serviceWorker" in navigator && navigator.serviceWorker) {
         navigator.serviceWorker.removeEventListener(
           "controllerchange",
           handleControllerChange
@@ -211,7 +195,6 @@ export function PwaBootstrap() {
     setIsReloading(true);
 
     const waitingWorker = registrationRef.current?.waiting;
-
     if (waitingWorker) {
       waitingWorker.postMessage({ type: "SKIP_WAITING" });
       return;
@@ -231,13 +214,11 @@ export function PwaBootstrap() {
           Offline
         </div>
       )}
-
       {hasUpdate && (
         <>
           <div className="pointer-events-auto inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-lg">
             App update available
           </div>
-
           <Button
             type="button"
             size="sm"

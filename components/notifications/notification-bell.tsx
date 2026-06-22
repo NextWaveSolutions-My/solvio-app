@@ -302,16 +302,22 @@ export function NotificationBell({
       });
     };
 
+    if (!("serviceWorker" in navigator) || !navigator.serviceWorker) {
+      return;
+    }
+
     navigator.serviceWorker.addEventListener(
       "message",
       handleServiceWorkerMessage
     );
 
     return () => {
-      navigator.serviceWorker.removeEventListener(
-        "message",
-        handleServiceWorkerMessage
-      );
+      if ("serviceWorker" in navigator && navigator.serviceWorker) {
+        navigator.serviceWorker.removeEventListener(
+          "message",
+          handleServiceWorkerMessage
+        );
+      }
     };
   }, [showForegroundAlert, userId]);
 
