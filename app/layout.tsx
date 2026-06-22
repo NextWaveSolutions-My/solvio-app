@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import PlausibleProvider from "next-plausible";
 import { Toaster } from "@/components/ui/sonner";
 import { Geist, Geist_Mono } from "next/font/google";
-import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
+// import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { SettingsProvider } from "@/components/providers/settings-provider";
@@ -98,7 +98,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        <PwaBootstrap />
+        {/* <PwaBootstrap /> */}
         <ThemeProvider>
           <SessionProvider>
             <SettingsProvider settings={settings}>
