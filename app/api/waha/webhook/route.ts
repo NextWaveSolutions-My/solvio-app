@@ -41,6 +41,9 @@ function isAuthorizedWebhookRequest(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+        console.log("[WAHA webhook] hit:", new Date().toISOString());
+
+        
     if (!isAuthorizedWebhookRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
