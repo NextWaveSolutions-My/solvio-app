@@ -254,6 +254,35 @@ export async function createConversationRecord(input: CreateConversationInput) {
   return document;
 }
 
+/**
+ * Find the existing direct (1:1) conversation between two participants, or
+ * create one if it doesn't exist yet. Used by inbound channel webhooks
+ * (WAHA today; Telegram/Instagram etc could reuse this later) where there's
+ * no "create conversation" UI step — the first inbound message has to
+ * silently establish the thread.
+ */
+export async function findOrCreateDirectConversation(
+  participantAId: string,
+  participantBId: string
+) {
+  const conversationsCollection =
+    await getCollection<ConversationDocument>("conversations");
+
+  const existing = await conversationsCollection.findOne({
+    type: "direct",
+    participantIds: { $all: [participantAId, participantBId], $size: 2 },
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  return createConversationRecord({
+    participantIds: [participantAId, participantBId],
+    createdBy: participantBId,
+  });
+}
+
 export async function createMessageRecord(input: CreateMessageInput) {
   const messagesCollection = await getCollection<MessageDocument>("messages");
   const id = createId();
